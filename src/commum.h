@@ -16,11 +16,16 @@
 // Json
 #include <json.h>
 
+// wolfSSL
+#include <wolfssl/options.h>
+#include <wolfssl/ssl.h>
+
 #define DISCOVERY_PORT  8883
 #define BUFSIZE         1024
 
 void error(const char *msg);
 void discovery();
 void getRobotInfo(const char* ip);
+int getPassword(const char* host);
 
 #endif
