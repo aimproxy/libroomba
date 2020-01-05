@@ -1,6 +1,6 @@
-<div class="text-center">
-  <img src="https://media.giphy.com/media/fQfS2YYFQgvQACkRPV/giphy.gif"/>
-</div>
+<p align="center">
+<img src="https://i.giphy.com/media/fQfS2YYFQgvQACkRPV/giphy.webp" alt="roomba_gif">
+</p>
 
 # libroomba
 This is an implementation of the dorita980 lib, written in C for firmwares V2 and V3.
