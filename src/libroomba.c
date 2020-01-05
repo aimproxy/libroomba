@@ -181,7 +181,7 @@ int getPassword(const char* host)
 
   // Fill in the server address
   servAddr.sin_family = AF_INET;             // using IPv4
-  servAddr.sin_port   = htons(DEFAULT_PORT); // on DEFAULT_PORT
+  servAddr.sin_port   = htons(DISCOVERY_PORT); // on DEFAULT_PORT
 
   // Get the server IPv4 address from the command line call
   if (inet_pton(AF_INET, host, &servAddr.sin_addr) != 1) {
