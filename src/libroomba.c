@@ -2,6 +2,11 @@
 
 void error(const char *msg) { perror(msg); exit(EXIT_FAILURE); }
 
+/*
+ * Discovery your Roomba through the network
+ *
+ * This function sends a probe to the broadcast until find a roomba
+ */
 void discovery()
 {
   int sockfd, one = 1;
@@ -19,55 +24,61 @@ void discovery()
   from.sin_addr.s_addr = inet_addr("192.168.1.0");
 
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
-      error("socket");
+    error("socket");
 
   timo.tv_sec  = 3;
   timo.tv_usec = 0;
   if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timo, sizeof (timo)) == -1)
-      error("setsockopt RCVTIMEO");
+    error("setsockopt RCVTIMEO");
 
   if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &one, sizeof (one)) == -1)
-      error("setsockopt BROADCAST");
+    error("setsockopt BROADCAST");
 
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof (one)) == -1)
-      error("setsockopt REUSEPORT");
+    error("setsockopt REUSEPORT");
 
   for (;;) {
-      const char probe[] = "irobotmcs";
-      ssize_t n;
-      int replies = 0;
+    const char probe[] = "irobotmcs";
+    ssize_t n;
+    int replies = 0;
 
-      n = sendto(sockfd, probe, strlen(probe), 0, (struct sockaddr *) &bcast, sizeof (bcast));
-      if (n != strlen(probe)) {
-          if (n != -1)
-              error("short write");
-          error("sendto");
+    n = sendto(sockfd, probe, strlen(probe), 0, (struct sockaddr *) &bcast, sizeof (bcast));
+    if (n != strlen(probe)) {
+      if (n != -1)
+        error("short write");
+      error("sendto");
+    }
+
+    for (;;) {
+      struct sockaddr_in peer;
+      socklen_t peer_len = sizeof (peer);
+      char reply[2048];
+
+      n = recvfrom(sockfd, reply, sizeof (reply), 0, (struct sockaddr *) &peer, &peer_len);
+      if (n == -1) {
+        if (errno == EWOULDBLOCK)
+          break;
+        error("recvfrom");
       }
 
-      for (;;) {
-          struct sockaddr_in peer;
-          socklen_t peer_len = sizeof (peer);
-          char reply[2048];
+      if (peer.sin_addr.s_addr == from.sin_addr.s_addr)
+        continue;
 
-          n = recvfrom(sockfd, reply, sizeof (reply), 0, (struct sockaddr *) &peer, &peer_len);
-          if (n == -1) {
-              if (errno == EWOULDBLOCK)
-                  break;
-              error("recvfrom");
-          }
-
-          if (peer.sin_addr.s_addr == from.sin_addr.s_addr)
-              continue;
-
-          printf("reply from %s:%d\n",
-              inet_ntoa(peer.sin_addr), ntohs(peer.sin_port));
-          ++replies;
-      }
-      if (!replies)
-          printf("it's quiet\n");
+      printf("reply from %s:%d\n",
+      inet_ntoa(peer.sin_addr), ntohs(peer.sin_port));
+      ++replies;
+    }
+    if (!replies)
+      printf("it's quiet\n");
   }
 }
 
+/*
+ * Get Robot Info
+ *
+ * This function gives you the basic information about the robot,
+ * such as firmaware version, hostname, the ip, and the blid.
+ */
 void getRobotInfo(const char* ip)
 {
   struct json_object *jobj;
