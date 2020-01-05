@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://media.giphy.com/media/mP9hvHDhy4E9i/giphy.gif" alt="roomba_gif">
+<img src="https://media.giphy.com/media/13Csc1WMn9sXSM/source.gif" alt="roomba_gif">
 </p>
 
 # libroomba
