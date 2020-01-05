@@ -125,3 +125,160 @@ void getRobotInfo(const char* ip)
   // Deallocate the socket
   close(sockfd);
 }
+
+/*
+ * wolfSSL verification callback
+ *
+ * This function is called when peer certificate verification
+ * fails. Returning "1" from this function will
+ * allow the SSL/TLS handshake to continue as if verification
+ * succeeded.
+ */
+int always_true_callback(int preverify, WOLFSSL_X509_STORE_CTX* store)
+{
+    (void)preverify;
+    return 1;
+}
+
+/*
+ * Get Roomba password
+ *
+ * This method will only work correctly if you have triggered
+ * wifi mode by holding the HOME button for several seconds
+ * until the roomba beeps.
+ */
+int getPassword(const char* host)
+{
+  // Socket Structure
+  int                sockfd;
+  struct sockaddr_in servAddr;
+
+  // declare wolfSSL objects
+  WOLFSSL_CTX* ctx;
+  WOLFSSL*     ssl;
+
+  // Initialize wolfSSL
+  wolfSSL_Init();
+
+  /*
+   * Create a socket that uses an internet IPv4 address,
+   * Sets the socket to be stream based (TCP),
+   * 0 means choose the default protocol.
+   */
+  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    fprintf(stderr, "ERROR: failed to create the socket\n");
+    return -1;
+  }
+
+  // Create and initialize WOLFSSL_CTX
+  if ((ctx = wolfSSL_CTX_new(wolfTLSv1_2_client_method())) == NULL) {
+    fprintf(stderr, "ERROR: failed to create WOLFSSL_CTX\n");
+    return -1;
+  }
+
+  // Initialize the server address struct with zeros
+  memset(&servAddr, 0, sizeof(servAddr));
+
+  // Fill in the server address
+  servAddr.sin_family = AF_INET;             // using IPv4
+  servAddr.sin_port   = htons(DEFAULT_PORT); // on DEFAULT_PORT
+
+  // Get the server IPv4 address from the command line call
+  if (inet_pton(AF_INET, host, &servAddr.sin_addr) != 1) {
+      fprintf(stderr, "ERROR: invalid address\n");
+      return -1;
+  }
+
+  // Connect to the server
+  if (connect(sockfd, (struct sockaddr*) &servAddr, sizeof(servAddr)) == -1) {
+    fprintf(stderr, "ERROR: failed to connect\n");
+    return -1;
+  }
+
+  // No validate peer cert
+  wolfSSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, always_true_callback);
+
+  // Create a WOLFSSL object
+  if ((ssl = wolfSSL_new(ctx)) == NULL) {
+    fprintf(stderr, "ERROR: failed to create WOLFSSL object\n");
+    return -1;
+  }
+
+  // Set cipher suite
+  const char *CIPHER_LIST = "AES128-SHA256";
+  wolfSSL_set_cipher_list(ssl, CIPHER_LIST);
+
+  // Attach wolfSSL to the socket
+  wolfSSL_set_fd(ssl, sockfd);
+
+  // Connect to wolfSSL on the server side
+  if (wolfSSL_connect(ssl) != SSL_SUCCESS) {
+    fprintf(stderr, "ERROR: failed to connect to wolfSSL\n");
+    return -1;
+  }
+
+  /*
+   * Get a message for the server
+   * [0]	240	 byte   0xf0  MQTT
+   * [1]	5    byte   0x05  Message Length
+   * [2]	239  byte   0xef
+   * [3]	204	 byte   0xcc
+   * [4]	59	 byte   0x3b
+   * [5]	41	 byte   0x29
+   * [6]	0	   byte   0x00 - Based on errors returned, this seems like its a response flag, where 0x00 is OK, and 0x03 is ERROR
+   */
+  byte hex_packet[] =  { 0xf0, 0x05, 0xef, 0xcc, 0x3b, 0x29, 0x00 };
+
+  // Send the message to the server
+  if (wolfSSL_write(ssl, hex_packet, sizeof(hex_packet)) != sizeof(hex_packet)) {
+    fprintf(stderr, "ERROR: failed to write\n");
+    return -1;
+  }
+
+  /*
+   * NOTE data is 0xf0 (mqtt RESERVED) length (0x23 = 35),
+   * 0xefcc3b2900 (magic packet), 0xXXXX... (30 bytes of
+   * password). so 7 bytes, followed by 30 bytes of password
+   * (total of 37)
+   */
+  byte buff[37];
+  memset(buff, '\0', sizeof(buff));
+
+  // Read the server data into our buff array
+  while (1) {
+    int ret = 0;
+    if ((ret = wolfSSL_read(ssl, buff, sizeof(buff)-1)) == -1) {
+      fprintf(stderr, "ERROR: failed to read\n");
+      return -1;
+    }
+
+    /*
+     *  [0]	240	byte 0xf0 MQTT
+     *  [1]	35	byte 0x35 Len
+     *  The message length includes the original 5 bytes we sent to it.
+     */
+    if (ret == 2) {
+      continue;
+    } else if (ret <= 7) {
+      fprintf(stderr, "ERROR: Failed to retrieve password. Did you hold the home button until it beeped?\n");
+      return -1;
+    } else if (ret > 8) {
+      byte psw[30];
+      memset(&psw, '\0', sizeof(psw));
+      memcpy(&psw, buff+5, sizeof(psw));
+
+      // Get result in UTF-8
+      for (int i = 0; i < sizeof(psw); i++) {
+        printf("%c", psw[i]);
+      }
+      break;
+    }
+  }
+
+  // Cleanup and return
+  wolfSSL_free(ssl);      // Free the wolfSSL object
+  wolfSSL_CTX_free(ctx);  // Free the wolfSSL context object
+  wolfSSL_Cleanup();      // Cleanup the wolfSSL environment
+  close(sockfd);          // Close the connection to the server
+  return 0;               // Return reporting a success
+}
