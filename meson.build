@@ -27,15 +27,4 @@ libroomba = shared_library(
   install: true
 )
 
-executable(
-    'discovery',
-    'examples/discovery.c',
-    include_directories : inc,
-    dependencies: [
-      lib_wolfssl,
-      lib_json
-    ],
-    link_with: [
-        libroomba
-    ]
-)
+subdir('examples')
