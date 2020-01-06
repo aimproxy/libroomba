@@ -79,7 +79,7 @@ void discovery()
  * This function gives you the basic information about the robot,
  * such as firmaware version, hostname, the ip, and the blid.
  */
-void getRobotInfo(const char* ip)
+void getRobotInfo(const char* host)
 {
   struct json_object *jobj;
   struct sockaddr_in server_addr;
@@ -99,7 +99,7 @@ void getRobotInfo(const char* ip)
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = htons(DISCOVERY_PORT);
 
-  if (inet_aton(ip , &server_addr.sin_addr) == 0)
+  if (inet_aton(host , &server_addr.sin_addr) == 0)
     error("inet_aton");
 
   // Enabling Broadcast

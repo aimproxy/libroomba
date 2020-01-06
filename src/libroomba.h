@@ -25,7 +25,7 @@
 
 void error(const char *msg);
 void discovery();
-void getRobotInfo(const char* ip);
+void getRobotInfo(const char* host);
 int getPassword(const char* host);
 
 #endif
