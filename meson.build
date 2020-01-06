@@ -1,4 +1,4 @@
-project('libroomba', 'c',
+project('roomba', 'c',
   version : '1.0.0',
   license : 'GPLv3')
 
