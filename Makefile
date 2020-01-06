@@ -1,9 +1,9 @@
 CC = clang
 LIB_PATH = /usr/local
-CFLAGS = -Wall -g -I$(LIB_PATH)/include 
+CFLAGS = -Wall -g -I$(LIB_PATH)/include
 BINS = libroomba.so
 SOURCES = src/libroomba.c
-HEADER = src/commum.h
+HEADER = src/libroomba.h
 BUILDDIR = build
 LIBS = -L$(LIB_PATH)/lib -lm
 
