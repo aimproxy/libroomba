@@ -8,6 +8,7 @@
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/roombavacuum/libroomba">
 </p>
 This is an implementation of the dorita980 lib, written in C for firmwares V2 and V3.
+this library comes with a shared librarys `.so`, and can be found at `build/libroomba.so` after compile it.
 
 ## Building
 ```sh
@@ -22,7 +23,7 @@ ninja
 Discover your Roomba through the network.
 This function sends a probe to the broadcast until find a roomba!
 ```sh
-cd build
+cd build/examples
 ./discovery
 ```
 
@@ -30,7 +31,7 @@ cd build
 This function gives you the basic information about the robot,
 such as firmaware version, hostname, the ip, and the blid.
 ```
-cd build
+cd build/examples
 ./getRobotInfo
 ```
 
@@ -39,6 +40,6 @@ This method will only work correctly if you have triggered
 wifi mode by holding the HOME button for several seconds
 until the roomba beeps.
 ```
-cd build
+cd build/examples
 ./getPassword
 ```
