@@ -282,3 +282,95 @@ int getPassword(const char* host)
   close(sockfd);          // Close the connection to the server
   return 0;               // Return reporting a success
 }
+
+/*
+ * Init MQTT
+ */
+int initRoomba(const char* host, const char* username, const char* password)
+{
+  int rc = MQTT_CODE_SUCCESS;
+
+  MqttObject mqttObj;
+
+  // Initialize MQTT client
+  XMEMSET(&mNetwork, 0, sizeof(mNetwork));
+  mNetwork.connect = mqtt_net_connect;
+  mNetwork.read = mqtt_net_read;
+  mNetwork.write = mqtt_net_write;
+  mNetwork.disconnect = mqtt_net_disconnect;
+  mNetwork.context = &mSockFd;
+  if(MqttClient_Init(&mClient, &mNetwork, NULL,
+      mSendBuf, sizeof(mSendBuf), mReadBuf, sizeof(mReadBuf),
+      MQTT_CON_TIMEOUT_MS) != MQTT_CODE_SUCCESS) goto exit;
+
+  // Connect to broker
+  if (MqttClient_NetConnect(&mClient, host, TLS_PORT,
+    MQTT_CON_TIMEOUT_MS, 1, mqtt_tls_cb) != MQTT_CODE_SUCCESS) goto exit;
+
+  // Build connect packet
+  XMEMSET(&mqttObj, 0, sizeof(mqttObj));
+  mqttObj.connect.keep_alive_sec = 30;
+  mqttObj.connect.clean_session = 0;
+  mqttObj.connect.client_id = username;
+  mqttObj.connect.username = username;
+  mqttObj.connect.password = password;
+
+  // Send Connect and wait for Connect Ack
+  if (MqttClient_Connect(&mClient, &mqttObj.connect) != MQTT_CODE_SUCCESS)
+    goto exit;
+
+exit:
+  if (rc != MQTT_CODE_SUCCESS) {
+    PRINTF("MQTT Error %d: %s", rc, MqttClient_ReturnCodeToString(rc));
+  }
+
+  return rc;
+}
+
+/*
+ * This functions builds a Json string with a specified command
+ */
+const char* buildCommand(const char* command)
+{
+  struct json_object *jcmd;
+
+  jcmd = json_object_new_object();
+
+  int ttime = (int) time(NULL);
+
+  json_object_object_add(jcmd, "command", json_object_new_string(command));
+	json_object_object_add(jcmd, "time", json_object_new_int(ttime));
+  json_object_object_add(jcmd, "initiator", json_object_new_string("localApp"));
+
+  return json_object_to_json_string_ext(jcmd,
+    JSON_C_TO_STRING_SPACED | JSON_C_TO_STRING_PRETTY);
+}
+
+
+/*
+ * Send command to Roomba
+ */
+int sendCommand(const char* topic, const char* publish_msg)
+{
+  int rc = MQTT_CODE_SUCCESS;
+
+  const char* cmd = buildCommand(publish_msg);
+
+  // Publish
+  XMEMSET(&mqttObj, 0, sizeof(mqttObj));
+  mqttObj.publish.qos = 0;
+  mqttObj.publish.topic_name = topic;
+  mqttObj.publish.packet_id = mqtt_get_packetid();
+  mqttObj.publish.buffer = (byte*)cmd;
+  mqttObj.publish.total_len = XSTRLEN(cmd);
+
+  rc = MqttClient_Publish(&mClient, &mqttObj.publish);
+  if (rc != MQTT_CODE_SUCCESS) goto exit;
+
+exit:
+  if (rc != MQTT_CODE_SUCCESS) {
+    PRINTF("MQTT Error %d: %s", rc, MqttClient_ReturnCodeToString(rc));
+  }
+
+  return rc;
+}
