@@ -4,10 +4,11 @@ executable(
     include_directories : inc,
     dependencies: [
       lib_wolfssl,
+      lib_wolfmqtt,
       lib_json
     ],
     link_with: [
-        libroomba
+      libroomba
     ]
 )
 
@@ -17,10 +18,11 @@ executable(
     include_directories : inc,
     dependencies: [
       lib_wolfssl,
+      lib_wolfmqtt,
       lib_json
     ],
     link_with: [
-        libroomba
+      libroomba
     ]
 )
 
@@ -30,9 +32,24 @@ executable(
     include_directories : inc,
     dependencies: [
       lib_wolfssl,
+      lib_wolfmqtt,
       lib_json
     ],
     link_with: [
-        libroomba
+      libroomba
+    ]
+)
+
+executable(
+    'startRoomba',
+    'startRoomba.c',
+    include_directories : inc,
+    dependencies: [
+      lib_wolfssl,
+      lib_wolfmqtt,
+      lib_json
+    ],
+    link_with: [
+      libroomba
     ]
 )
