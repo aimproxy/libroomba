@@ -10,6 +10,31 @@
 This is an implementation of the dorita980 lib, written in C for firmwares V2 and V3.
 this library comes with a shared librarys `.so`, and can be found at `build/libroomba.so` after compile it.
 
+## Features
+- [x] Get username/password easily from Roomba
+- [x] Auto discovery roomba IP
+- [x] Control your robot with the local API
+- [x] Firmware 2.x.x/3.x.x compatible
+
+## Commands
+
+| Commands               | 2.x.x Local | 3.x.x Local   |
+|------------------------|-------------|---------------|
+| Clean                  | yes         | yes           |
+| Start                  | yes         | yes           |
+| Stop                   | yes         | yes           |
+| Pause                  | yes         | yes           |
+| Dock                   | yes         | yes           |
+| Resume                 | yes         | yes           |
+| CleanRoom              | yes         | yes           |
+| Discovery Robot IP     | yes         | yes           |
+| Get BLID and Password  | yes         | yes           |
+
+## Dependencies
+- wolfSSL with oldTLS support which contains AES128-SHA256 cipher suite
+- wolfMQTT with TLS support
+- Json-C
+
 ## Building
 ```sh
 git clone https://github.com/roombavacuum/libroomba.git && cd home
