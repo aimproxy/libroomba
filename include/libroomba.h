@@ -26,7 +26,7 @@
 #define TLS_PORT                8883
 #define DISCOVERY_PORT          5678
 #define BUFSIZE                 1024
-#define PRINT_BUFFER_SIZE       80
+#define PRINT_BUFFER_SIZE       500
 #define MQTT_CMD_TIMEOUT_MS     30000
 #define MQTT_CON_TIMEOUT_MS     5000
 #define INVALID_SOCKET_FD       -1
