@@ -67,3 +67,9 @@ until the roomba beeps.
 cd build/examples
 ./getPassword
 ```
+
+### Exec a command
+Pass the desired command in argv[1]
+```
+./startRoomba "clean"
+```
