@@ -299,7 +299,7 @@ int initRoomba(const char* host, const char* username, const char* password)
   mNetwork.write = mqtt_net_write;
   mNetwork.disconnect = mqtt_net_disconnect;
   mNetwork.context = &mSockFd;
-  if(MqttClient_Init(&mClient, &mNetwork, NULL,
+  if(MqttClient_Init(&mClient, &mNetwork, mqtt_message_cb,
       mSendBuf, sizeof(mSendBuf), mReadBuf, sizeof(mReadBuf),
       MQTT_CON_TIMEOUT_MS) != MQTT_CODE_SUCCESS) goto exit;
 
@@ -366,6 +366,23 @@ int sendCommand(const char* topic, const char* publish_msg)
 
   rc = MqttClient_Publish(&mClient, &mqttObj.publish);
   if (rc != MQTT_CODE_SUCCESS) goto exit;
+
+  PRINTF("MQTT Publish: Topic %s, Qos %d, Message %s",
+    mqttObj.publish.topic_name, mqttObj.publish.qos, mqttObj.publish.buffer);
+
+
+  // Wait for messages
+  //while (1) {
+    rc = MqttClient_WaitMessage_ex(&mClient, &mqttObj, MQTT_CMD_TIMEOUT_MS);
+
+    if (rc == MQTT_CODE_ERROR_TIMEOUT) {
+      // send keep-alive ping
+      rc = MqttClient_Ping(&mClient);
+      if (rc != MQTT_CODE_SUCCESS) goto exit;
+      PRINTF("MQTT Keep-Alive Ping");
+    }
+
+    if (rc != MQTT_CODE_SUCCESS) goto exit;
 
 exit:
   if (rc != MQTT_CODE_SUCCESS) {
