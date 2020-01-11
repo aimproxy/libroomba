@@ -26,7 +26,6 @@ this library comes with a shared librarys `.so`, and can be found at `build/libr
 | Pause                  | yes         | yes           |
 | Dock                   | yes         | yes           |
 | Resume                 | yes         | yes           |
-| CleanRoom              | yes         | yes           |
 | Discovery Robot IP     | yes         | yes           |
 | Get BLID and Password  | yes         | yes           |
 
