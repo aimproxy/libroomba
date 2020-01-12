@@ -7,8 +7,15 @@
 <img alt="GitHub" src="https://img.shields.io/github/license/roombavacuum/libroomba">
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/roombavacuum/libroomba">
 </p>
-This is an implementation of the dorita980 lib, written in C for firmwares V2 and V3.
-this library comes with a shared librarys `.so`, and can be found at `build/libroomba.so` after compile it.
+
+The intention of this project is making an implementation of dorita980 in C.
+This project has been implemented in C for firmwares V2 and V3.
+With this library you can send commands to your wifi enabled Roomba through the iRobot directly from your LAN.
+I recommend blocking the internet access to your robot to avoid the OTA firmware updates, new OTA can cause libroomba to stop working.
+If you enjoy libroomba and it works nice for you, please give me a star.
+
+## How to contribute
+If you wanna contribute to the project, please make a fork, write your code and then submit a PR.
 
 ## Features
 - [x] Get username/password easily from Roomba
