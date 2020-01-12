@@ -9,9 +9,12 @@
 </p>
 
 The intention of this project is making an implementation of dorita980 in C.
+
 This project has been implemented in C for firmwares V2 and V3.
 With this library you can send commands to your wifi enabled Roomba through the iRobot directly from your LAN.
+
 I recommend blocking the internet access to your robot to avoid the OTA firmware updates, new OTA can cause libroomba to stop working.
+
 If you enjoy libroomba and it works nice for you, please give me a star.
 
 ## How to contribute
